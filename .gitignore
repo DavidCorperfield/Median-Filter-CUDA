@@ -1,0 +1,6 @@
+# Ignore the build
+/build/
+
+# Ignore any executables
+/bin/*
+
