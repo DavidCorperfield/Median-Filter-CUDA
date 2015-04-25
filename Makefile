@@ -1,4 +1,5 @@
-CC = nvcc
+# CC = nvcc
+CC = g++
 SRCDIR = src
 BUILDDIR = build
 BINDIR = bin
@@ -8,13 +9,13 @@ SRCEXT = cpp
 SOURCES = $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJS = $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
 
-CFLAGS =
+CFLAGS = -std=c++11
 
 # Add the debug flags if you'd like them.
 CFLAGS +=
 
 # Normal libs to always include
-LIBS =
+LIBS = -lrt -lboost_system -lboost_filesystem
 
 INC = -I include
 
