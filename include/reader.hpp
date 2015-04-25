@@ -10,7 +10,19 @@
 #include <utility>
 #include <vector>
 
+#include <stdio.h>
+
 #include <boost/filesystem.hpp>
+#include <boost/lexical_cast.hpp>
+
+// Includes CUDA
+#include <cuda_runtime.h>
+
+// Utilities and timing functions
+// #include <helper_functions.h>    // includes cuda.h and cuda_runtime_api.h
+
+// CUDA helper functions
+// #include <helper_cuda.h>         // helper functions for CUDA error check
 
 class Reader {
 public:
@@ -24,7 +36,9 @@ public:
      *
      * Returns (filter_size, input, output)
      */
-    std::tuple<uint8_t, std::string, std::string> check_command_line(int argc, char ** argv);
+    std::tuple<uint8_t, char *, char *> check_command_line(int argc, char ** argv);
+
+
 };
 
 
