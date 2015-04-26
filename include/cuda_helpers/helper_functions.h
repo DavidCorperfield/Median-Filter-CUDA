@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <string>
 #include <assert.h>
-#include <exception>
+#include "exception.h"
 #include <math.h>
 
 #include <fstream>

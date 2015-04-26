@@ -19,10 +19,10 @@
 #include <cuda_runtime.h>
 
 // Utilities and timing functions
-#include "../include/cuda_includes/helper_functions.h"    // includes cuda.h and cuda_runtime_api.h
+#include "../include/cuda_helpers/helper_functions.h"    // includes cuda.h and cuda_runtime_api.h
 
 // CUDA helper functions
-#include "../include/cuda_includes/helper_cuda.h"        // helper functions for CUDA error check
+#include "../include/cuda_helpers/helper_cuda.h"        // helper functions for CUDA error check
 
 class Reader {
 public:

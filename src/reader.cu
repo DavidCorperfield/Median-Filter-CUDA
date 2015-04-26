@@ -15,13 +15,11 @@ tuple<uint8_t, char *, char *> Reader::check_command_line(int argc, char ** argv
         throw runtime_error("Invalid filter size! Must be 3, 7, 11, or 15");
     }
 
-    // string input_file_path(argv[2]);
-    if (!boost::filesystem::exists(argv[2].to_string())) {
+    if (!boost::filesystem::exists(argv[2])) {
         throw runtime_error("No image to do a median filter on!");
     };
 
-    // string output_file_path(argv[3]);
-    if (boost::filesystem::exists(argv[3].to_string())) {
+    if (boost::filesystem::exists(argv[3])) {
         throw runtime_error("Output file already exists!");
     }
 
