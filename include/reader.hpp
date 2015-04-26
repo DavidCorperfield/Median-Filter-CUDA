@@ -32,7 +32,10 @@ typedef unsigned char uchar;
 
 class Reader {
 public:
-    Reader() = default;
+    /* Will initialize pgm_source and pgm_destination to nullptr */
+    Reader();
+
+    ~Reader();
 
     /**
      * Command line should take three inputs:
@@ -44,8 +47,18 @@ public:
      */
     std::tuple<uint8_t, char *, char *> check_command_line(int argc, char ** argv);
 
-    void load_image(const char * image_path);
+    /**
+     * Loads the PGM input image.
+     * Returns the (height, width) of the image.
+     */
+    std::pair<uint, uint> load_image(const char * image_input_path);
 
+    /**
+     * Save the pgm image we did the Median Filter on.
+     */
+    void save_image(const char * output_path, const uint height, const uint width);
+
+    /* Should probably make these private later on, since good OOP practices and all */
     uchar * pgm_source;
     uchar * pgm_destination;
 };

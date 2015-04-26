@@ -2,6 +2,19 @@
 
 using namespace std;
 
+/* If this isn't initialized to nullptr, LoadPGM will try to store the data there.
+   Good thing nullptr and NULL play nice together since I live life on the edge. */
+Reader::Reader() : pgm_source(nullptr), pgm_destination(nullptr)
+{
+
+}
+
+Reader::~Reader() {
+    free(pgm_source);
+    free(pgm_destination);
+}
+
+
 tuple<uint8_t, char *, char *> Reader::check_command_line(int argc, char ** argv) {
     if (argc < 4) {
         cout << "Invalid Usage." << endl;
@@ -26,18 +39,15 @@ tuple<uint8_t, char *, char *> Reader::check_command_line(int argc, char ** argv
     return make_tuple(filter_size, argv[2], argv[3]);
 }
 
-void Reader::load_image(const char * image_path) {
+pair<uint, uint> Reader::load_image(const char * inpute_image_path) {
     uint height, width;
 
     #ifdef _DEBUG
-        cout << image_path << endl;
+        cout << inpute_image_path << endl;
     #endif
 
-    /* If this isn't initialized to NULL, LoadPGM will try to store the data there. */
-    pgm_source = pgm_destination = nullptr;
-
     /* If we have problems loading the image, or if the height or width is not what we expect (512 px), quit early. */
-    if (!sdkLoadPGM<uchar>(image_path, &pgm_source, &width, &height)) {
+    if (!sdkLoadPGM<uchar>(inpute_image_path, &pgm_source, &width, &height)) {
         throw runtime_error("Problem loading the PGM image!");
     }
     if (width != EXPECTED_WIDTH || height != EXPECTED_HEIGHT) {
@@ -48,5 +58,13 @@ void Reader::load_image(const char * image_path) {
     pgm_destination = (uchar *) malloc(height * width);
     if (!pgm_destination) {
         throw runtime_error("Problem with malloc for the destination image!");
+    }
+
+    return make_pair(height, width);
+}
+
+void Reader::save_image(const char * image_output_path, const uint height, const uint width) {
+    if (!sdkSavePGM<uchar>(image_output_path, pgm_destination, width, height)) {
+        throw runtime_error("Error in saving the output image!");
     }
 }
