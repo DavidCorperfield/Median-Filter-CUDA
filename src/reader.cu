@@ -34,7 +34,7 @@ void Reader::load_image(const char * image_path) {
     #endif
 
     /* If this isn't initialized to NULL, LoadPGM will try to store the data there. */
-    pgm_source = pgm_destination = NULL;
+    pgm_source = pgm_destination = nullptr;
 
     /* If we have problems loading the image, or if the height or width is not what we expect (512 px), quit early. */
     if (!sdkLoadPGM<uchar>(image_path, &pgm_source, &width, &height)) {
