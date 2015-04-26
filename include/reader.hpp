@@ -1,5 +1,5 @@
-#ifndef _reader_
-#define _reader_
+#ifndef _reader_hpp
+#define _reader_hpp
 
 #include <exception>
 #include <iostream>
@@ -54,7 +54,7 @@ public:
     std::pair<uint, uint> load_image(const char * image_input_path);
 
     /**
-     * Save the pgm image we did the Median Filter on.
+     * Save the PGM image we did the Median Filter on.
      */
     void save_image(const char * output_path, const uint height, const uint width);
 

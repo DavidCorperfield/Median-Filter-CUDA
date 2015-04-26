@@ -3,6 +3,7 @@
 #include <tuple>
 
 #include "../include/reader.hpp"
+#include "../include/filter.hpp"
 
 using namespace std;
 
@@ -18,10 +19,12 @@ int main(int argc, char ** argv) {
     char * image_output_path = get<2>(input_params);
 
     pair<uint, uint> image_dimensions = reader.load_image(image_input_path);
-    const uint height = get<0>(image_dimensions);
-    const uint width = get<1>(image_dimensions);
+    uint height = get<0>(image_dimensions);
+    uint width = get<1>(image_dimensions);
 
     /* Do some Median Filter magic. */
+    Filter filter;
+    double time_taken = filter.median_filter_gpu<filter_size>(reader.pgm_source, reader.pgm_destination, height, width);
 
     reader.save_image(image_output_path, height, width);
 
