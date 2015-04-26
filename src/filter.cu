@@ -1,5 +1,7 @@
 #include "../include/filter.hpp"
 
+using namespace std;
+
 /* ============================================DEVICE INFO============================================
   CUDA Driver Version / Runtime Version          6.5 / 6.5
   CUDA Capability Major/Minor version number:    3.0
@@ -34,3 +36,16 @@
 
   deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 6.5, CUDA Runtime Version = 6.5, NumDevs = 1, Device0 = GRID K520
 */
+
+
+/* =============== TRY EXPLICIT TEMPLATE INSTANTIATION ====================== */
+// template double Filter::median_filter_gpu<3>(uchar *, uchar *, uint, uint);
+// template double Filter::median_filter_gpu<7>(uchar *, uchar *, uint, uint);
+// template double Filter::median_filter_gpu<11>(uchar *, uchar *, uint, uint);
+// template double Filter::median_filter_gpu<15>(uchar *, uchar *, uint, uint);
+
+// template<uint8_t filter_size>
+// double Filter::median_filter_gpu(uchar * data, uchar * output, uint height, uint width) {
+//     cout << "Filter size is: " << filter_size << endl;
+//     return 0;
+// }

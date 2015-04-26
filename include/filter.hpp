@@ -6,6 +6,7 @@
 #include <cuda_runtime.h>
 #include "cuda_helpers/helper_functions.h"
 #include "cuda_helpers/helper_cuda.h"
+#include <iostream>
 
 /* Grid and Block definitions. Alter these as you please to tweak results. */
 #ifndef GRID_SET
@@ -29,8 +30,15 @@ public:
      */
     template<uint8_t filter_size>
     double median_filter_gpu(uchar * data, uchar * output, uint height, uint width) {
-        return 0;
+        return filter_size;
     }
+
+
+    // void test(const uint8_t filter_size, Filter & f, uchar * data, uchar * output, uint height, uint width) {
+    //     double time_taken = 0;
+    //     time_taken = f.median_filter_gpu<filter_size>(data, output, height, width);
+    //     std::cout << "Time taken is: " << time_taken << std::endl;
+    // }
 };
 
 #endif
