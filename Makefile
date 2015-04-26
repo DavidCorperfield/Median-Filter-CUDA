@@ -1,8 +1,5 @@
-# Path to the CUDA installation
-CUDA_ROOT = /opt/nvidia/cuda
-
-# CUDA compiler full path
-CC = $(CUDA_ROOT)/bin/nvcc
+# CUDA compiler
+CC = nvcc
 
 # Source, Build, BIN, Target directory paths
 SRCDIR = src
