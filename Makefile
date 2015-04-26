@@ -9,7 +9,7 @@ TARGET = bin/mf
 
 SRCEXT = cu
 
-# Include all cpp files to use as sources and feed them to use as objects.
+# Include all cu files to use as sources and feed them to use as objects.
 SOURCES = $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJS = $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
 

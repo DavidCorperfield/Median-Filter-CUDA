@@ -1,6 +1,5 @@
 #include "../include/filter.hpp"
 
-
 /* ============================================DEVICE INFO============================================
   CUDA Driver Version / Runtime Version          6.5 / 6.5
   CUDA Capability Major/Minor version number:    3.0
@@ -35,8 +34,3 @@
 
   deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 6.5, CUDA Runtime Version = 6.5, NumDevs = 1, Device0 = GRID K520
 */
-
-template<uint8_t filter_size>
-double Filter::median_filter_gpu(uchar * data, uchar * output, uint height, uint width) {
-    return 0;
-}

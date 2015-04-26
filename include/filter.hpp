@@ -28,7 +28,9 @@ public:
      * Returns the time taken to do the Median Filter.
      */
     template<uint8_t filter_size>
-    double median_filter_gpu(uchar * data, uchar * output, uint height, uint width);
+    double median_filter_gpu(uchar * data, uchar * output, uint height, uint width) {
+        return 0;
+    }
 };
 
 #endif
