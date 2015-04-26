@@ -1,5 +1,5 @@
-# Path to the cuda installation
-CUDA_ROOT = /usr/local/cuda-7.0
+# Path to the CUDA installation
+CUDA_ROOT = /opt/nvidia/cuda
 
 # CUDA compiler full path
 CC = $(CUDA_ROOT)/bin/nvcc

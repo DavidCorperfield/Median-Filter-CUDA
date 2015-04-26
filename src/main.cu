@@ -16,11 +16,11 @@ int main(int argc, char ** argv) {
     cout << "Image: " << image_path << " has been loaded." << endl;
 
     // Load image from disk
-    float * header_data = nullptr;
-    unsigned int width, height;
-    sdkLoadPGM(image_path, &header_data, &width, &height);
+    // float * header_data = nullptr;
+    // unsigned int width, height;
+    // sdkLoadPGM(image_path, &header_data, &width, &height);
 
-    cout << "Width: " << width << "Height: " << height;
+    // cout << "Width: " << width << "Height: " << height;
 
     return 0;
 }

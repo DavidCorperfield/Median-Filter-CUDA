@@ -2,7 +2,7 @@
 
 using namespace std;
 
-tuple<uint8_t, string, string> Reader::check_command_line(int argc, char ** argv) {
+tuple<uint8_t, char *, char *> Reader::check_command_line(int argc, char ** argv) {
     if (argc < 4) {
         cout << "Invalid Usage." << endl;
         cout << "Proper usage is: " << "./mf <filter size> <input_filename> <output_filename> \n" << endl;
