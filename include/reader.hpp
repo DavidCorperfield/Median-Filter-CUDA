@@ -4,14 +4,14 @@
 #include <exception>
 #include <iostream>
 #include <fstream>
-#include <string>
+#include <stdio.h>
 #include <stdexcept>
+#include <string>
 #include <tuple>
 #include <utility>
 #include <vector>
 
-#include <stdio.h>
-
+// Boost Libs
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 
@@ -23,6 +23,15 @@
 
 // CUDA helper functions
 #include "../include/cuda_helpers/helper_cuda.h"        // helper functions for CUDA error check
+
+typedef unsigned int uint;
+typedef unsigned char uchar;
+
+#define EXPECTED_HEIGHT 512
+#define EXPECTED_WIDTH 512
+
+// static uint EXPECTED_WIDTH 512;
+// static uint EXPECTED_HEIGHT 512;
 
 class Reader {
 public:
@@ -38,7 +47,10 @@ public:
      */
     std::tuple<uint8_t, char *, char *> check_command_line(int argc, char ** argv);
 
+    void load_image(const char * image_path);
 
+    uchar * pgm_source;
+    uchar * pgm_destination;
 };
 
 

@@ -25,3 +25,27 @@ tuple<uint8_t, char *, char *> Reader::check_command_line(int argc, char ** argv
 
     return make_tuple(filter_size, argv[2], argv[3]);
 }
+
+void Reader::load_image(const char * image_path) {
+    uint height, width;
+
+    #ifdef _DEBUG
+        cout << image_path << endl;
+    #endif
+
+    pgm_source = pgm_destination = nullptr;
+
+    /* If we have problems loading the image, or if the height or width is not what we expect (512 px), quit early. */
+    if (!sdkLoadPGM<uchar>(image_path, &pgm_source, &width, &height)) {
+        throw runtime_error("Problem loading the PGM image!");
+    }
+    // if (width != EXPECTED_WIDTH || height != EXPECTED_HEIGHT) {
+    //     throw runtime_error("Unexpected width or height!");
+    // }
+
+    /* Since loadPGM naturally doesn't check the malloc, we should do that. */
+    // pgm_destination = (uchar *) malloc(height * width);
+    // if (!pgm_destination) {
+    //     throw runtime_error("Problem with malloc for the destination image!");
+    // }
+}
