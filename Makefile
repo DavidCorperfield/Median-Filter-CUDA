@@ -16,7 +16,7 @@ OBJS = $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
 CFLAGS = -std=c++11
 
 # Add the debug flags if you'd like them.
-CFLAGS +=
+CFLAGS += -D_DEBUG
 
 BOOST_ROOT = /usr/include/boost
 

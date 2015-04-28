@@ -26,11 +26,11 @@ public:
      * Returns the time taken to do the Median Filter.
      */
     template<uint8_t filter_size>
-    double median_filter_gpu(uchar * data, uchar * output, uint height, uint width);
+    double median_filter_gpu(const uchar * input, uchar * output, const uint height, const uint width);
 
     inline void start_timer();
 
-    /* Stops & deletes the timer object. Returns the time taken. */
+    /* Stops and deletes the timer object. Returns the time taken. */
     inline double stop_timer(StopWatchInterface * timer);
 };
 
