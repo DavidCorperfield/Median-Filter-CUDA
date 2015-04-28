@@ -28,6 +28,9 @@ public:
     template<uint8_t filter_size>
     double median_filter_gpu(const uchar * input, uchar * output, const uint height, const uint width);
 
+    template<uint8_t filter_size>
+    void median_filter_cpu(const uchar * input, uchar * output, const uint height, const uint width);
+
     inline void start_timer();
 
     /* Stops and deletes the timer object. Returns the time taken. */

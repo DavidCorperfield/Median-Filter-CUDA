@@ -50,7 +50,6 @@ double Filter::median_filter_gpu(const uchar * host_data, uchar * output, const 
     /* Allocate device memory for the result. */
     uchar * device_data = nullptr;
     checkCudaErrors(cudaMalloc((void **) & device_data, size));
-
     checkCudaErrors(
         cudaMemcpy(
             device_data,    // dst
@@ -61,6 +60,11 @@ double Filter::median_filter_gpu(const uchar * host_data, uchar * output, const 
     );
 
     return 0;
+}
+
+template<uint8_t filter_size>
+void Filter::median_filter_cpu(const uchar * input, uchar * output, const uint height, const uint width) {
+
 }
 
 inline void Filter::start_timer() {
