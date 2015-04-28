@@ -62,9 +62,41 @@ double Filter::median_filter_gpu(const uchar * host_data, uchar * output, const 
     return 0;
 }
 
-template<uint8_t filter_size>
+template<uint8_t filter_size = 3>
 void Filter::median_filter_cpu(const uchar * input, uchar * output, const uint height, const uint width) {
+    // How far in any which direction you can go.
+    // (-1, -1) (0, -1) (1, -1)
+    // (-1,  0) (0,  0) (1,  0)
+    // (-1,  1) (0,  1) (1,  1)
+    const uint8_t offset = (filter_size - 1) / 2;
+    uchar filter_array[filter_size * filter_size];
 
+    // Iterate and perform median filter analysis on every pixel.
+    for (uint x = 0; x < width; x++) {
+	for (uint y = 0; y < height; y++) {
+	    uchar * context        = &input[x + width * y];
+	    uchar * output_context = &output[x + width * y];
+
+	    // Populate the filter_array.
+	    uint filter_array_index = 0;
+	    for (uint x_offset = -offset; x_offset < offset; x_offset++) {
+		for (uint y_offset = -offset; y_offset < offset; y++) {
+		    // Handle special case for when the offset would place us beyond the bounds of the input.
+		    // (a la the edges or corners of an image)
+		    //
+		    // Well, duh, we have x and y right above.
+		    
+		    filter_array[filter_array_index++] = *(context + x_offset + width * y_offset);
+		}
+	    }
+
+	    // Sort the filter_array.
+	    // blah.
+
+	    // Grab the median.
+	    *output_context = filter_array[(filter_size * filter_size - 1) / 2];
+	}
+    }
 }
 
 inline void Filter::start_timer() {
