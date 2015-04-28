@@ -28,8 +28,7 @@ int main(int argc, char ** argv) {
     double time_taken = 0;
 
     /**
-     * Credit to Will for the idea of the switch statement. This is used since filter size is not known
-     * until run time but we need our templates at compile time. So, just hard code the sizes.
+     * Credit to Will for the idea of the switch statement. So, just hard code the sizes.
      * TODO: Think of better way to extend this in case we had more filter sizes by using
      * explicit template instantiation.
      */
