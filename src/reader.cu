@@ -35,7 +35,6 @@ tuple<uint8_t, char *, char *> Reader::check_command_line(int argc, char ** argv
     if (boost::filesystem::exists(argv[3])) {
         throw runtime_error("Output file already exists!");
     }
-
     return make_tuple(filter_size, argv[2], argv[3]);
 }
 

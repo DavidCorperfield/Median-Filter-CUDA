@@ -3,11 +3,10 @@
 
 #include <exception>
 #include <iostream>
-#include <fstream>
+// #include <fstream>
 #include <stdio.h>
 #include <stdexcept>
 #include <string>
-#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -43,7 +42,7 @@ public:
      *     2) An input filename
      *     3) An output filename
      *
-     * Returns (filter_size, input, output)
+     * Throws a runtime error if none of these things are right.
      */
     std::tuple<uint8_t, char *, char *> check_command_line(int argc, char ** argv);
 

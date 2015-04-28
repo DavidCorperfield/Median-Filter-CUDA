@@ -12,11 +12,12 @@ typedef unsigned char uchar;
 
 int main(int argc, char ** argv) {
     Reader reader;
-    tuple<uint8_t, char *, char *> input_params = reader.check_command_line(argc, argv);
 
-    uint8_t filter_size = get<0>(input_params);
-    char * image_input_path = get<1>(input_params);
-    char * image_output_path = get<2>(input_params);
+    /* Check for right number of arguments, correct filter size. Throw runtime error if none of this is correct. */
+    tuple<uint8_t, char *, char *> input_parameters = reader.check_command_line(argc, argv);
+    uint8_t filter_size = get<0>(input_parameters);
+    char * image_input_path = get<1>(input_parameters);
+    char * image_output_path = get<2>(input_parameters);
 
     pair<uint, uint> image_dimensions = reader.load_image(image_input_path);
     uint height = get<0>(image_dimensions);
@@ -25,8 +26,6 @@ int main(int argc, char ** argv) {
     /* Do some Median Filter magic. */
     Filter filter;
     double time_taken = 0;
-    // time_taken = filter.median_filter_gpu<filter_size>(reader.pgm_source, reader.pgm_destination, height, width);
-    // filter.test(filter_size, filter, reader.pgm_source, reader.pgm_destination, height, width);
 
     /**
      * Credit to Will for the idea of the switch statement. This is used since filter size is not known

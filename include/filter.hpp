@@ -21,24 +21,17 @@ typedef unsigned int uint;
 
 class Filter {
 public:
-    Filter() = default;
-    ~Filter() = default;
-
     /**
      * Does a Median Filter on the input PGM image.
      * Returns the time taken to do the Median Filter.
      */
     template<uint8_t filter_size>
-    double median_filter_gpu(uchar * data, uchar * output, uint height, uint width) {
-        return filter_size;
-    }
+    double median_filter_gpu(uchar * data, uchar * output, uint height, uint width);
 
+    inline void start_timer();
 
-    // void test(const uint8_t filter_size, Filter & f, uchar * data, uchar * output, uint height, uint width) {
-    //     double time_taken = 0;
-    //     time_taken = f.median_filter_gpu<filter_size>(data, output, height, width);
-    //     std::cout << "Time taken is: " << time_taken << std::endl;
-    // }
+    /* Stops & deletes the timer object. Returns the time taken. */
+    inline double stop_timer(StopWatchInterface * timer);
 };
 
 #endif
