@@ -38,13 +38,27 @@ using namespace std;
 */
 
 /* =============== TRY EXPLICIT TEMPLATE INSTANTIATION ====================== */
-template double Filter::median_filter_gpu<3>(uchar *, uchar *, uint, uint);
-template double Filter::median_filter_gpu<7>(uchar *, uchar *, uint, uint);
-template double Filter::median_filter_gpu<11>(uchar *, uchar *, uint, uint);
-template double Filter::median_filter_gpu<15>(uchar *, uchar *, uint, uint);
+template double Filter::median_filter_gpu<3>(const uchar *, uchar *, const uint, const uint);
+template double Filter::median_filter_gpu<7>(const uchar *, uchar *, const uint, const uint);
+template double Filter::median_filter_gpu<11>(const uchar *, uchar *, const uint, const uint);
+template double Filter::median_filter_gpu<15>(const uchar *, uchar *, const uint, const uint);
 
 template<uint8_t filter_size>
-double Filter::median_filter_gpu(uchar * data, uchar * output, uint height, uint width) {
+double Filter::median_filter_gpu(const uchar * host_data, uchar * output, const uint height, const uint width) {
+    const uint size = height * width * sizeof(uchar);
+
+    /* Allocate device memory for the result. */
+    uchar * device_data = nullptr;
+    checkCudaErrors(cudaMalloc((void **) & device_data, size));
+
+    checkCudaErrors(
+        cudaMemcpy(
+            device_data,    // dst
+            host_data,      // src
+            size,           // count
+            cudaMemcpyHostToDevice
+        )
+    );
 
     return 0;
 }
