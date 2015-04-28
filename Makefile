@@ -13,10 +13,13 @@ SRCEXT = cu
 SOURCES = $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJS = $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
 
-CFLAGS = -std=c++11
+CFLAGS = -std=c++11 -O3
 
 # Add the debug flags if you'd like them.
 CFLAGS += -D_DEBUG
+
+# For CUDA Debugging
+CFLAGS += -g -G
 
 BOOST_ROOT = /usr/include/boost
 

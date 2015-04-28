@@ -44,7 +44,7 @@ public:
      *
      * Throws a runtime error if none of these things are right.
      */
-    std::tuple<uint8_t, char *, char *> check_command_line(int argc, char ** argv);
+    std::tuple<uint, char *, char *> check_command_line(int argc, char ** argv);
 
     /**
      * Loads the PGM input image.

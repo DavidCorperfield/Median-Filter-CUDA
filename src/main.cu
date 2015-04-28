@@ -1,4 +1,6 @@
+#include <exception>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <tuple>
 
@@ -14,8 +16,8 @@ int main(int argc, char ** argv) {
     Reader reader;
 
     /* Check for right number of arguments, correct filter size. Throw runtime error if none of this is correct. */
-    tuple<uint8_t, char *, char *> input_parameters = reader.check_command_line(argc, argv);
-    uint8_t filter_size = get<0>(input_parameters);
+    tuple<uint, char *, char *> input_parameters = reader.check_command_line(argc, argv);
+    const uint filter_size = get<0>(input_parameters);
     const char * image_input_path = get<1>(input_parameters);
     char * image_output_path = get<2>(input_parameters);
 
@@ -27,26 +29,9 @@ int main(int argc, char ** argv) {
     Filter filter;
     double time_taken = 0;
 
-    /**
-     * Credit to Will for the idea of the switch statement. So, just hard code the sizes.
-     * TODO: Think of better way to extend this in case we had more filter sizes by using
-     * explicit template instantiation.
-     */
-    switch(filter_size) {
-        /* Should definitely match one of these cases since I checked for bad filter sizes earlier on. */
-        case 3:
-            time_taken = filter.median_filter_gpu<3>(reader.pgm_source, reader.pgm_destination, height, width);
-            break;
-        case 7:
-            time_taken = filter.median_filter_gpu<7>(reader.pgm_source, reader.pgm_destination, height, width);
-            break;
-        case 11:
-            time_taken = filter.median_filter_gpu<11>(reader.pgm_source, reader.pgm_destination, height, width);
-            break;
-        case 15:
-            time_taken = filter.median_filter_gpu<15>(reader.pgm_source, reader.pgm_destination, height, width);
-            break;
-    }
+    time_taken = filter.median_filter_gpu(filter_size, reader.pgm_source, reader.pgm_destination, height, width);
+    filter.median_filter_cpu(filter_size, reader.pgm_source, reader.pgm_destination, height, width);
+
     reader.save_image(image_output_path, height, width);
 
     return 0;

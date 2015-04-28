@@ -37,14 +37,7 @@ using namespace std;
   deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 6.5, CUDA Runtime Version = 6.5, NumDevs = 1, Device0 = GRID K520
 */
 
-/* =============== TRY EXPLICIT TEMPLATE INSTANTIATION ====================== */
-template double Filter::median_filter_gpu<3>(const uchar *, uchar *, const uint, const uint);
-template double Filter::median_filter_gpu<7>(const uchar *, uchar *, const uint, const uint);
-template double Filter::median_filter_gpu<11>(const uchar *, uchar *, const uint, const uint);
-template double Filter::median_filter_gpu<15>(const uchar *, uchar *, const uint, const uint);
-
-template<uint8_t filter_size>
-double Filter::median_filter_gpu(const uchar * host_data, uchar * output, const uint height, const uint width) {
+double Filter::median_filter_gpu(const uint filter_size, const uchar * host_data, uchar * output, const uint height, const uint width) {
     const uint size = height * width * sizeof(uchar);
 
     /* Allocate device memory for the result. */
@@ -52,9 +45,9 @@ double Filter::median_filter_gpu(const uchar * host_data, uchar * output, const 
     checkCudaErrors(cudaMalloc((void **) & device_data, size));
     checkCudaErrors(
         cudaMemcpy(
-            device_data,    // dst
-            host_data,      // src
-            size,           // count
+            device_data,            // dst
+            host_data,              // src
+            size,                   // count
             cudaMemcpyHostToDevice
         )
     );
@@ -62,42 +55,45 @@ double Filter::median_filter_gpu(const uchar * host_data, uchar * output, const 
     return 0;
 }
 
-template<uint8_t filter_size = 3>
-void Filter::median_filter_cpu(const uchar * input, uchar * output, const uint height, const uint width) {
+void Filter::median_filter_cpu(const uint filter_size, const uchar * input, uchar * output, const uint height, const uint width) {
     // How far in any which direction you can go.
     // (-1, -1) (0, -1) (1, -1)
     // (-1,  0) (0,  0) (1,  0)
     // (-1,  1) (0,  1) (1,  1)
-    const uint8_t offset = (filter_size - 1) / 2;
+    const uint offset = (filter_size - 1) / 2;
     uchar filter_array[filter_size * filter_size];
 
     // Iterate and perform median filter analysis on every pixel.
     for (uint x = 0; x < width; x++) {
-	for (uint y = 0; y < height; y++) {
-	    uchar * context        = &input[x + width * y];
-	    uchar * output_context = &output[x + width * y];
+        for (uint y = 0; y < height; y++) {
+            // What pixel am I currently looking at
+            const uchar * context  = &input[x + width * y];
+            uchar * output_context = &output[x + width * y];
 
-	    // Populate the filter_array.
-	    uint filter_array_index = 0;
-	    for (uint x_offset = -offset; x_offset < offset; x_offset++) {
-		for (uint y_offset = -offset; y_offset < offset; y++) {
-		    // Handle special case for when the offset would place us beyond the bounds of the input.
-		    // (a la the edges or corners of an image)
-		    //
-		    // Well, duh, we have x and y right above.
-		    
-		    filter_array[filter_array_index++] = *(context + x_offset + width * y_offset);
-		}
-	    }
+    	    // Populate the filter_array.
+            uint filter_array_index = 0;
+            for (int x_offset = -offset; x_offset < offset; x_offset++) {
+                for (int y_offset = -offset; y_offset < offset; y++) {
+        		    // Handle special case for when the offset would place us beyond the bounds of the input.
+        		    // (a la the edges or corners of an image)
+        		    //
+        		    // Well, duh, we have x and y right above.
 
-	    // Sort the filter_array.
-	    // blah.
+        		    filter_array[filter_array_index++] = *(context + x_offset + width * y_offset);
+        		}
+    	    }
 
-	    // Grab the median.
-	    *output_context = filter_array[(filter_size * filter_size - 1) / 2];
-	}
+    	    // Sort the filter_array.
+            sort(filter_array, filter_array + (filter_size * filter_size));
+
+            // Grab the median. Note that the since we always had odd window sizes,
+            // then filter_size * filter_size is always odd as well - so no need to
+            // handle special cases for even or odd number for the median.
+            *output_context = filter_array[(filter_size * filter_size - 1) / 2];
+	   }
     }
 }
+
 
 inline void Filter::start_timer() {
     StopWatchInterface * timer = nullptr;
