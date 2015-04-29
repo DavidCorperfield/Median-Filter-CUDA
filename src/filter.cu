@@ -112,7 +112,7 @@ void kernel_median_filter(const uint filter_size, const uchar * device_input_dat
     *output_context = filter_array[(filter_length - 1) / 2];
 }
 
-void Filter::median_filter_gpu(const uint filter_size, const uchar * host_data, uchar * output, const uint height, const uint width) {
+double Filter::median_filter_gpu(const uint filter_size, const uchar * host_data, uchar * output, const uint height, const uint width) {
     const int size = height * width * sizeof(uchar);
 
     /* Allocate device memory for the result. */
@@ -146,9 +146,11 @@ void Filter::median_filter_gpu(const uint filter_size, const uchar * host_data, 
             cudaMemcpyDeviceToHost
     ));
 
-
     cudaFree(device_input_data);
     cudaFree(device_output_data);
+
+    /* Capture the device copy-compute-copy time. */
+    return get_timer_value();
 }
 
 void Filter::median_filter_cpu(const uint filter_size, const uchar * input, uchar * output, const uint height, const uint width) {

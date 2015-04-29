@@ -25,8 +25,9 @@ class Filter {
 public:
     /**
      * Does a Median Filter on the input PGM image.
+     * Return the copy-compute-copy time.
      */
-    void median_filter_gpu(const uint filter_size, const uchar * input, uchar * output, const uint height, const uint width);
+    double median_filter_gpu(const uint filter_size, const uchar * input, uchar * output, const uint height, const uint width);
 
     void median_filter_cpu(const uint filter_size, const uchar * input, uchar * output, const uint height, const uint width);
 
