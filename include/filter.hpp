@@ -25,13 +25,13 @@ class Filter {
 public:
     /**
      * Does a Median Filter on the input PGM image.
-     * Returns the time taken to do the Median Filter.
      */
-    double median_filter_gpu(const uint filter_size, const uchar * input, uchar * output, const uint height, const uint width);
-
-    /* Here I would put the signature for the kernel function, but CUDA is a mess and doesn't like this. */
+    void median_filter_gpu(const uint filter_size, const uchar * input, uchar * output, const uint height, const uint width);
 
     void median_filter_cpu(const uint filter_size, const uchar * input, uchar * output, const uint height, const uint width);
+
+    /* Determines the percentage of how many pixels are wrong between the CPU and GPU version. */
+    double median_filter_verify_errors(const uint filter_size, const uchar * data, const uchar * compare, const uint width, const uint height);
 
     inline void start_timer() {
         this->timer = nullptr;

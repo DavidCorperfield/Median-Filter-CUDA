@@ -112,7 +112,7 @@ void kernel_median_filter(const uint filter_size, const uchar * device_input_dat
     *output_context = filter_array[(filter_length - 1) / 2];
 }
 
-double Filter::median_filter_gpu(const uint filter_size, const uchar * host_data, uchar * output, const uint height, const uint width) {
+void Filter::median_filter_gpu(const uint filter_size, const uchar * host_data, uchar * output, const uint height, const uint width) {
     const int size = height * width * sizeof(uchar);
 
     /* Allocate device memory for the result. */
@@ -149,8 +149,6 @@ double Filter::median_filter_gpu(const uint filter_size, const uchar * host_data
 
     cudaFree(device_input_data);
     cudaFree(device_output_data);
-
-    return 0;
 }
 
 void Filter::median_filter_cpu(const uint filter_size, const uchar * input, uchar * output, const uint height, const uint width) {
@@ -229,4 +227,31 @@ void Filter::median_filter_cpu(const uint filter_size, const uchar * input, ucha
             *output_context = filter_array[(filter_length - 1) / 2];
 	   }
     }
+}
+
+double Filter::median_filter_verify_errors(const uint filter_size, const uchar * input_data, const uchar * compare, const uint height, const uint width) {
+    uchar * cpu_results = (uchar * ) malloc(height * width * sizeof(uchar));
+    if (!cpu_results) {
+        throw runtime_error("Problems in reserving memory for the CPU version.");
+    }
+
+    /* Do the Median Filter using the CPU. */
+    median_filter_cpu(filter_size, input_data, cpu_results, height, width);
+
+    const char * cpu_saved_file = "cpu_output.pgm";
+
+    if (!sdkSavePGM<uchar>(cpu_saved_file, cpu_results, width, height)) {
+        throw runtime_error("Error in saving the output image!");
+    }
+    cout << "Using the CPU version, we saved the image with filename: " << cpu_saved_file << endl;
+
+    /* Walk through and compare the pixels of the images to see how many are wrong. */
+    uint error_pixel_count = 0;
+    for (uint i = 0; i < height * width; ++i) {
+        if (cpu_results[i] != compare[i])
+            ++error_pixel_count;
+    }
+
+    /* Return the percentage of how many pixels are wrong. */
+    return error_pixel_count / (height * width);
 }
