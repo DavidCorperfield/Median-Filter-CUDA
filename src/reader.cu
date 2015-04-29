@@ -51,7 +51,7 @@ pair<uint, uint> Reader::load_image(const char * input_image_path) {
     }
 
     /* We should allocate some memory for the output image. */
-    pgm_destination = (uchar *) malloc(height * width);
+    pgm_destination = (uchar *) malloc(height * width * sizeof(uchar));
     if (!pgm_destination) {
         throw runtime_error("Problem with malloc for the destination image!");
     }

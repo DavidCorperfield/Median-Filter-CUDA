@@ -41,17 +41,18 @@ using namespace std;
  * Gets the global thread index of a 2D Grid of 2D blocks.
  */
 __device__
-inline uint get_global_index() {
-    int block_id = blockIdx.x + blockIdx.y * gridDim.x;
-    int thread_id = block_id * (blockDim.x * blockDim.y) + (threadIdx.y * blockDim.x) + threadIdx.x;
-    return thread_id;
+inline uint get_global_thread_index(const uint width) {
+    const uint x_index      = blockIdx.x * blockDim.x + threadIdx.x;
+    const uint y_index      = blockIdx.y * blockDim.y + threadIdx.y;
+    const uint pixel_one_d  = x_index + y_index * width;
+    return pixel_one_d;
 }
 
 __global__
 void kernel_median_filter(const uint filter_size, const uchar * device_input_data, uchar * device_output_data, const uint height, const uint width) {
     const uint offset        = (filter_size - 1) / 2;
     const uint filter_length = filter_size * filter_size;
-    const uint thread_index  = get_global_index();
+    const uint thread_index  = get_global_thread_index(width);
     const uint x             = thread_index / width;
     const uint y             = thread_index % width;
 
@@ -216,12 +217,12 @@ void Filter::median_filter_cpu(const uint filter_size, const uchar * input, ucha
             sort(filter_array, filter_array + filter_length);
 
             // Print the filter array to test.
-            #ifdef _DEBUG
-                for (uint i = 0; i < filter_length - 1; ++i) {
-                    cout << static_cast<int>(filter_array[i]) << " ";
-                }
-                cout << static_cast<int>(filter_array[filter_length - 1]) << endl;
-            #endif
+            // #ifdef _DEBUG
+            //     for (uint i = 0; i < filter_length - 1; ++i) {
+            //         cout << static_cast<int>(filter_array[i]) << " ";
+            //     }
+            //     cout << static_cast<int>(filter_array[filter_length - 1]) << endl;
+            // #endif
 
             // Grab the median. Note that the since we always had odd window sizes,
             // then filter_size * filter_size is always odd as well - so no need to
