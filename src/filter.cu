@@ -95,7 +95,7 @@ void kernel_median_filter(const uint filter_size, const uchar * device_input_dat
     uint min_index;
 #pragma unroll
     for (uint i = 0; i < filter_length - 1; ++i) {
-        min_index = i; // Used to keep track of the index that min is in -- needed for when a swap happens
+        min_index = i;
 #pragma unroll
         for (uint j = i + 1; j < filter_length; ++j) {
             if (filter_array[j] < filter_array[min_index])
@@ -113,17 +113,18 @@ void kernel_median_filter(const uint filter_size, const uchar * device_input_dat
 }
 
 double Filter::median_filter_gpu(const uint filter_size, const uchar * host_data, uchar * output, const uint height, const uint width) {
-    const uint size = height * width * sizeof(uchar);
+    const int size = height * width * sizeof(uchar);
 
     /* Allocate device memory for the result. */
-    uchar * device_data        = nullptr;
-    uchar * device_output_data = nullptr;
-    checkCudaErrors(cudaMalloc((void **) & device_data, size));
+    /* Note that output to hold the HOST memory has already been allocated for. */
+    void * device_input_data  = nullptr;
+    void * device_output_data = nullptr;
+    checkCudaErrors(cudaMalloc((void **) & device_input_data, size));
     checkCudaErrors(cudaMalloc((void **) & device_output_data, size));
 
     /* Copy the input data to the device. */
     checkCudaErrors(cudaMemcpy(
-            device_data,            // dst
+            device_input_data,      // dst
             host_data,              // src
             size,                   // count
             cudaMemcpyHostToDevice
@@ -132,7 +133,10 @@ double Filter::median_filter_gpu(const uint filter_size, const uchar * host_data
     /* Launch the kernel! */
     dim3 grid(GRID_X, GRID_Y, 1);
     dim3 block(BLOCK_X, BLOCK_Y, 1);
-    kernel_median_filter<<<grid, block>>>(filter_size, device_data, device_output_data, height, width);
+    kernel_median_filter<<< grid, block >>>(filter_size, (uchar *) device_input_data, (uchar *) device_output_data, height, width);
+
+    /* In case the kernel had problems, I'd like to know. */
+    checkCudaErrors(cudaGetLastError());
 
     /* At this point, we just need to copy the device output data back to the host memory. */
     checkCudaErrors(cudaMemcpy(
@@ -142,10 +146,8 @@ double Filter::median_filter_gpu(const uint filter_size, const uchar * host_data
             cudaMemcpyDeviceToHost
     ));
 
-    /* In case the kernel had problems, I'd like to know. */
-    checkCudaErrors(cudaGetLastError());
 
-    cudaFree(device_data);
+    cudaFree(device_input_data);
     cudaFree(device_output_data);
 
     return 0;

@@ -3,7 +3,7 @@
 using namespace std;
 
 /* If this isn't initialized to nullptr, LoadPGM will try to store the data there.
-   Good thing nullptr and NULL play nice together since I live life on the edge. */
+   Good thing nullptr and NULL play nice together. */
 Reader::Reader() : pgm_source(nullptr), pgm_destination(nullptr)
 {
 
@@ -50,13 +50,15 @@ pair<uint, uint> Reader::load_image(const char * input_image_path) {
         throw runtime_error("Unexpected width or height!");
     }
 
-    /* Since loadPGM naturally doesn't check the malloc, we should do that. */
+    /* We should allocate some memory for the output image. */
     pgm_destination = (uchar *) malloc(height * width);
     if (!pgm_destination) {
         throw runtime_error("Problem with malloc for the destination image!");
     }
 
     cout << "Read the image: " << input_image_path << endl;
+    cout << "Height of image is: " << height << " pixels and width is: " << width << " pixels." << endl;
+
     return make_pair(height, width);
 }
 
