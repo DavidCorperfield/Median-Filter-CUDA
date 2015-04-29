@@ -7,10 +7,11 @@
 #include "cuda_helpers/helper_functions.h"
 #include "cuda_helpers/helper_cuda.h"
 #include <iostream>
+#include <thrust/sort.h>
 
 /* Grid and Block definitions. Alter these as you please to tweak results. */
-#define GRID_X 16
-#define GRID_Y 16
+#define GRID_X 512
+#define GRID_Y 512
 #define BLOCK_X 32
 #define BLOCK_Y 32
 
@@ -27,6 +28,8 @@ public:
      * Returns the time taken to do the Median Filter.
      */
     double median_filter_gpu(const uint filter_size, const uchar * input, uchar * output, const uint height, const uint width);
+
+    /* Here I would put the signature for the kernel function, but CUDA is a mess and doesn't like this. */
 
     void median_filter_cpu(const uint filter_size, const uchar * input, uchar * output, const uint height, const uint width);
 

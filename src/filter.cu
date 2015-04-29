@@ -37,20 +37,116 @@ using namespace std;
   deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 6.5, CUDA Runtime Version = 6.5, NumDevs = 1, Device0 = GRID K520
 */
 
+/**
+ * Gets the global thread index of a 2D Grid of 2D blocks.
+ */
+__device__
+inline uint get_global_index() {
+    int block_id = blockIdx.x + blockIdx.y * gridDim.x;
+    int thread_id = block_id * (blockDim.x * blockDim.y) + (threadIdx.y * blockDim.x) + threadIdx.x;
+    return thread_id;
+}
+
+__global__
+void kernel_median_filter(const uint filter_size, const uchar * device_input_data, uchar * device_output_data, const uint height, const uint width) {
+    const uint offset        = (filter_size - 1) / 2;
+    const uint filter_length = filter_size * filter_size;
+    const uint thread_index  = get_global_index();
+    const uint x             = thread_index / width;
+    const uint y             = thread_index % width;
+
+    // Allocate memory for the filter array
+    uchar * filter_array     = new uchar[filter_length];
+
+    // Init the filter array with 0 or 255 values
+    // Will write over the indices that are VIEWABLE from the context pixel
+#pragma unroll
+    for (uint i = 0; i < filter_length; ++i) {
+        filter_array[i] = i % 2 == 0 ? MIN_RGB_VALUE : MAX_RGB_VALUE;
+    }
+
+    const uchar * context  = device_input_data  + thread_index;
+    uchar * output_context = device_output_data + thread_index;
+
+    // Populate the filter_array
+    uint filter_array_index = 0;
+
+#pragma unroll
+    for (int y_offset = -1 * static_cast<int>(offset); y_offset <= static_cast<int>(offset); ++y_offset) {
+#pragma unroll
+        for (int x_offset = -1 * static_cast<int>(offset); x_offset <= static_cast<int>(offset); ++x_offset) {
+            // Handle special cases for when the offset would place us beyond the bounds of the input.
+            const int x_focus = x + x_offset;
+            const int y_focus = y + y_offset;
+
+            // Check if one of the neighboring pixels of our context pixel is outside the grid
+            if (x_focus < 0 || x_focus >= width || y_focus < 0 || y_focus >= height) {
+                continue;
+            }
+            // Otherwise we're not an edge or corner, so we have all of our neighbors
+            filter_array[filter_array_index++] = *(context + static_cast<int>(x_offset) + static_cast<int>(width) * static_cast<int>(y_offset));
+        }
+    }
+
+    // Sort the filter_array.
+    // TODO: If had CUDA 7.0, we'd be using Thrust on the device.
+    // But, we don't right now, so just do a Selection Sort.
+    uchar swap;
+    uint min_index;
+#pragma unroll
+    for (uint i = 0; i < filter_length - 1; ++i) {
+        min_index = i; // Used to keep track of the index that min is in -- needed for when a swap happens
+#pragma unroll
+        for (uint j = i + 1; j < filter_length; ++j) {
+            if (filter_array[j] < filter_array[min_index])
+                min_index = j;
+        }
+        swap = filter_array[min_index];
+        filter_array[min_index] = filter_array[i];
+        filter_array[i] = swap;
+    }
+
+    // Grab the median. Note that the since we always had odd window sizes,
+    // then filter_size * filter_size is always odd as well - so no need to
+    // handle special cases for even or odd number for the median.
+    *output_context = filter_array[(filter_length - 1) / 2];
+}
+
 double Filter::median_filter_gpu(const uint filter_size, const uchar * host_data, uchar * output, const uint height, const uint width) {
     const uint size = height * width * sizeof(uchar);
 
     /* Allocate device memory for the result. */
-    uchar * device_data = nullptr;
+    uchar * device_data        = nullptr;
+    uchar * device_output_data = nullptr;
     checkCudaErrors(cudaMalloc((void **) & device_data, size));
-    checkCudaErrors(
-        cudaMemcpy(
+    checkCudaErrors(cudaMalloc((void **) & device_output_data, size));
+
+    /* Copy the input data to the device. */
+    checkCudaErrors(cudaMemcpy(
             device_data,            // dst
             host_data,              // src
             size,                   // count
             cudaMemcpyHostToDevice
-        )
-    );
+    ));
+
+    /* Launch the kernel! */
+    dim3 grid(GRID_X, GRID_Y, 1);
+    dim3 block(BLOCK_X, BLOCK_Y, 1);
+    kernel_median_filter<<<grid, block>>>(filter_size, device_data, device_output_data, height, width);
+
+    /* At this point, we just need to copy the device output data back to the host memory. */
+    checkCudaErrors(cudaMemcpy(
+            output,                 // dst
+            device_output_data,     // src
+            size,                   // count
+            cudaMemcpyDeviceToHost
+    ));
+
+    /* In case the kernel had problems, I'd like to know. */
+    checkCudaErrors(cudaGetLastError());
+
+    cudaFree(device_data);
+    cudaFree(device_output_data);
 
     return 0;
 }
@@ -63,10 +159,10 @@ void Filter::median_filter_cpu(const uint filter_size, const uchar * input, ucha
     const uint offset = (filter_size - 1) / 2;
     const uint filter_length = filter_size * filter_size;
 
+    // For testing purposes, print out RGB values of original Lena image.
     #ifdef LENA
         for (uint y = 0; y < height; ++y) {
             for (uint x = 0; x < width; ++x) {
-                // Print out Lena
                 cout << static_cast<int>(input[x + width * y]) << " ";
             }
             cout << endl;
@@ -97,7 +193,9 @@ void Filter::median_filter_cpu(const uint filter_size, const uchar * input, ucha
     	    // Populate the filter_array.
             uint filter_array_index = 0;
 
+#pragma unroll
             for (int y_offset = -1 * static_cast<int>(offset); y_offset <= static_cast<int>(offset); ++y_offset) {
+#pragma unroll
                 for (int x_offset = -1 * static_cast<int>(offset); x_offset <= static_cast<int>(offset); ++x_offset) {
         		    // Handle special cases for when the offset would place us beyond the bounds of the input.
                     const int x_focus = x + x_offset;
@@ -116,10 +214,12 @@ void Filter::median_filter_cpu(const uint filter_size, const uchar * input, ucha
             sort(filter_array, filter_array + filter_length);
 
             // Print the filter array to test.
-            for (uint i = 0; i < filter_length - 1; ++i) {
-                cout << static_cast<int>(filter_array[i]) << " ";
-            }
-            cout << static_cast<int>(filter_array[filter_length - 1]) << endl;
+            #ifdef _DEBUG
+                for (uint i = 0; i < filter_length - 1; ++i) {
+                    cout << static_cast<int>(filter_array[i]) << " ";
+                }
+                cout << static_cast<int>(filter_array[filter_length - 1]) << endl;
+            #endif
 
             // Grab the median. Note that the since we always had odd window sizes,
             // then filter_size * filter_size is always odd as well - so no need to

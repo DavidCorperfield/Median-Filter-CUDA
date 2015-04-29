@@ -30,8 +30,8 @@ int main(int argc, char ** argv) {
 
     filter.start_timer();
 
-    // time_taken = filter.median_filter_gpu(filter_size, reader.pgm_source, reader.pgm_destination, height, width);
-    filter.median_filter_cpu(filter_size, reader.pgm_source, reader.pgm_destination, height, width);
+    double time_taken = filter.median_filter_gpu(filter_size, reader.pgm_source, reader.pgm_destination, height, width);
+    // filter.median_filter_cpu(filter_size, reader.pgm_source, reader.pgm_destination, height, width);
 
     reader.save_image(image_output_path, height, width);
 
