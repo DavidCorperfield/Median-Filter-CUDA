@@ -27,12 +27,18 @@ int main(int argc, char ** argv) {
 
     /* Do some Median Filter magic. */
     Filter filter;
-    double time_taken = 0;
 
-    time_taken = filter.median_filter_gpu(filter_size, reader.pgm_source, reader.pgm_destination, height, width);
+    filter.start_timer();
+
+    // time_taken = filter.median_filter_gpu(filter_size, reader.pgm_source, reader.pgm_destination, height, width);
     filter.median_filter_cpu(filter_size, reader.pgm_source, reader.pgm_destination, height, width);
 
     reader.save_image(image_output_path, height, width);
+
+    const double total_time = filter.get_timer_value();
+    cout << "Total time is: " << total_time << " milliseconds." << endl;
+
+    filter.stop_timer();
 
     return 0;
 }

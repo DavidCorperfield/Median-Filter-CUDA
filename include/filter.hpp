@@ -9,12 +9,13 @@
 #include <iostream>
 
 /* Grid and Block definitions. Alter these as you please to tweak results. */
-#ifndef GRID_SET
-    #define GRID_X 16
-    #define GRID_Y 16
-    #define BLOCK_X 32
-    #define BLOCK_Y 32
-#endif
+#define GRID_X 16
+#define GRID_Y 16
+#define BLOCK_X 32
+#define BLOCK_Y 32
+
+#define MIN_RGB_VALUE 0
+#define MAX_RGB_VALUE 255
 
 typedef unsigned char uchar;
 typedef unsigned int uint;
@@ -29,10 +30,23 @@ public:
 
     void median_filter_cpu(const uint filter_size, const uchar * input, uchar * output, const uint height, const uint width);
 
-    inline void start_timer();
+    inline void start_timer() {
+        this->timer = nullptr;
+        sdkCreateTimer(&timer);
+        sdkStartTimer(&timer);
+    }
 
-    /* Stops and deletes the timer object. Returns the time taken. */
-    inline double stop_timer(StopWatchInterface * timer);
+    inline double get_timer_value() {
+        return sdkGetTimerValue(&timer);
+    }
+
+    /* Stops and deletes the timer object. */
+    inline void stop_timer() {
+        sdkStopTimer(&timer);
+        sdkDeleteTimer(&timer);
+    }
+
+    StopWatchInterface * timer;
 };
 
 #endif

@@ -61,49 +61,70 @@ void Filter::median_filter_cpu(const uint filter_size, const uchar * input, ucha
     // (-1,  0) (0,  0) (1,  0)
     // (-1,  1) (0,  1) (1,  1)
     const uint offset = (filter_size - 1) / 2;
-    uchar filter_array[filter_size * filter_size];
+    const uint filter_length = filter_size * filter_size;
 
-    // Iterate and perform median filter analysis on every pixel.
-    for (uint x = 0; x < width; x++) {
-        for (uint y = 0; y < height; y++) {
+    #ifdef LENA
+        for (uint y = 0; y < height; ++y) {
+            for (uint x = 0; x < width; ++x) {
+                // Print out Lena
+                cout << static_cast<int>(input[x + width * y]) << " ";
+            }
+            cout << endl;
+        }
+    #endif
+
+    /**
+     * Iterate and perform median filter analysis on every pixel.
+     * Make outer loop the ys so that successive reads are as close to each other as possible,
+     * i.e. for single-threaded CPU code, it is most important for caching, but for GPUs it is
+     * most important for coalesced memory access (and maybe caching).
+     * If we iterate over the rows first, we have 0 coalescing then.
+     */
+    for (uint y = 0; y < height; ++y) {
+        for (uint x = 0; x < width; ++x) {
+
+            uchar filter_array[filter_length];
+            // Init the filter array with 0 or 255 values
+            // Will write over the indices that are VIEWABLE from the context pixel
+            for (uint i = 0; i < filter_length; ++i) {
+                filter_array[i] = i % 2 == 0 ? MIN_RGB_VALUE : MAX_RGB_VALUE;
+            }
+
             // What pixel am I currently looking at
             const uchar * context  = &input[x + width * y];
             uchar * output_context = &output[x + width * y];
 
     	    // Populate the filter_array.
             uint filter_array_index = 0;
-            for (int x_offset = -offset; x_offset < offset; x_offset++) {
-                for (int y_offset = -offset; y_offset < offset; y++) {
-        		    // Handle special case for when the offset would place us beyond the bounds of the input.
-        		    // (a la the edges or corners of an image)
-        		    //
-        		    // Well, duh, we have x and y right above.
 
-        		    filter_array[filter_array_index++] = *(context + x_offset + width * y_offset);
+            for (int y_offset = -1 * static_cast<int>(offset); y_offset <= static_cast<int>(offset); ++y_offset) {
+                for (int x_offset = -1 * static_cast<int>(offset); x_offset <= static_cast<int>(offset); ++x_offset) {
+        		    // Handle special cases for when the offset would place us beyond the bounds of the input.
+                    const int x_focus = x + x_offset;
+                    const int y_focus = y + y_offset;
+
+                    // Check if one of the neighboring pixels of our context pixel is outside the grid
+                    if (x_focus < 0 || x_focus >= width || y_focus < 0 || y_focus >= height) {
+                        continue;
+                    }
+                    // Otherwise we're not an edge or corner, so we have all of our neighbors
+                    filter_array[filter_array_index++] = *(context + static_cast<int>(x_offset) + static_cast<int>(width) * static_cast<int>(y_offset));
         		}
     	    }
 
     	    // Sort the filter_array.
-            sort(filter_array, filter_array + (filter_size * filter_size));
+            sort(filter_array, filter_array + filter_length);
+
+            // Print the filter array to test.
+            for (uint i = 0; i < filter_length - 1; ++i) {
+                cout << static_cast<int>(filter_array[i]) << " ";
+            }
+            cout << static_cast<int>(filter_array[filter_length - 1]) << endl;
 
             // Grab the median. Note that the since we always had odd window sizes,
             // then filter_size * filter_size is always odd as well - so no need to
             // handle special cases for even or odd number for the median.
-            *output_context = filter_array[(filter_size * filter_size - 1) / 2];
+            *output_context = filter_array[(filter_length - 1) / 2];
 	   }
     }
-}
-
-
-inline void Filter::start_timer() {
-    StopWatchInterface * timer = nullptr;
-    sdkCreateTimer(&timer);
-    sdkStartTimer(&timer);
-}
-
-inline double Filter::stop_timer(StopWatchInterface * timer) {
-    sdkStopTimer(&timer);
-    const double time_taken = sdkGetTimerValue(&timer);
-    sdkDeleteTimer(&timer);
-    return time_taken;
 }
