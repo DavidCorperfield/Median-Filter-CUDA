@@ -57,7 +57,8 @@ void kernel_median_filter(const uint filter_size, const uchar * device_input_dat
     const uint y             = thread_index % width;
 
     // Allocate memory for the filter array
-    uchar * filter_array     = new uchar[filter_length];
+    extern __shared__ uchar filter_array[];
+    //uchar * filter_array     = new uchar[filter_length];
 
     // Init the filter array with 0 or 255 values
     // Will write over the indices that are VIEWABLE from the context pixel
@@ -111,10 +112,12 @@ void kernel_median_filter(const uint filter_size, const uchar * device_input_dat
     // then filter_size * filter_size is always odd as well - so no need to
     // handle special cases for even or odd number for the median.
     *output_context = filter_array[(filter_length - 1) / 2];
+    //delete[] filter_array;
 }
 
 double Filter::median_filter_gpu(const uint filter_size, const uchar * host_data, uchar * output, const uint height, const uint width) {
     const int size = height * width * sizeof(uchar);
+    const int filter_array_size = filter_size * filter_size * sizeof(uchar);
 
     /* Allocate device memory for the result. */
     /* Note that output to hold the HOST memory has already been allocated for. */
@@ -134,19 +137,25 @@ double Filter::median_filter_gpu(const uint filter_size, const uchar * host_data
     /* Launch the kernel! */
     dim3 grid(GRID_X, GRID_Y, 1);
     dim3 block(BLOCK_X, BLOCK_Y, 1);
-    kernel_median_filter<<< grid, block >>>(filter_size, (uchar *) device_input_data, (uchar *) device_output_data, height, width);
+    kernel_median_filter<<<grid, block, filter_array_size>>>(filter_size, (uchar *) device_input_data, (uchar *) device_output_data, height, width);
 
     /* In case the kernel had problems, I'd like to know. */
     checkCudaErrors(cudaGetLastError());
 
     /* At this point, we just need to copy the device output data back to the host memory. */
-    checkCudaErrors(cudaMemcpy(
-            output,                 // dst
-            device_output_data,     // src
-            size,                   // count
-            cudaMemcpyDeviceToHost
-    ));
+    cout << "p_output:             " << (void *) output << endl;
+    cout << "p_device_output_data: " << (void *) device_output_data << endl;
+    cout << "size:                 " << size << endl;
 
+    checkCudaErrors(cudaMemcpy(
+			output,                 // dst
+			device_output_data,     // srcpp
+			size,                   // count
+			cudaMemcpyDeviceToHost
+			));
+
+    cout << "freeing: device_input_data" << endl;
+    cout << "freeing: device_output_data" << endl;
     cudaFree(device_input_data);
     cudaFree(device_output_data);
 
