@@ -57,8 +57,8 @@ void kernel_median_filter(const uint filter_size, const uchar * device_input_dat
     const uint y             = thread_index % width;
 
     // Allocate memory for the filter array
-    extern __shared__ uchar filter_array[];
-    //uchar * filter_array     = new uchar[filter_length];
+    //extern __shared__ uchar filter_array[];
+    uchar * filter_array     = new uchar[filter_length];
 
     // Init the filter array with 0 or 255 values
     // Will write over the indices that are VIEWABLE from the context pixel
@@ -82,12 +82,13 @@ void kernel_median_filter(const uint filter_size, const uchar * device_input_dat
             const int y_focus = y + y_offset;
 
             // Check if one of the neighboring pixels of our context pixel is outside the grid
-            if (x_focus < 0 || x_focus >= width || y_focus < 0 || y_focus >= height) {
-                continue;
-            }
-            // Otherwise we're not an edge or corner, so we have all of our neighbors
-            filter_array[filter_array_index++] = *(context + static_cast<int>(x_offset) + static_cast<int>(width) * static_cast<int>(y_offset));
-        }
+            if (x_focus < 0 || x_focus >= static_cast<int>(width) || y_focus < 0 || y_focus >= static_cast<int>(height)) {
+		continue;
+	    }
+
+	    // Otherwise we're not an edge or corner, so we have all of our neighbors
+	    filter_array[filter_array_index++] = *(context + static_cast<int>(x_offset) + static_cast<int>(width) * static_cast<int>(y_offset));
+	}
     }
 
     // Sort the filter_array.
@@ -112,7 +113,7 @@ void kernel_median_filter(const uint filter_size, const uchar * device_input_dat
     // then filter_size * filter_size is always odd as well - so no need to
     // handle special cases for even or odd number for the median.
     *output_context = filter_array[(filter_length - 1) / 2];
-    //delete[] filter_array;
+    delete[] filter_array;
 }
 
 double Filter::median_filter_gpu(const uint filter_size, const uchar * host_data, uchar * output, const uint height, const uint width) {
