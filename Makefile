@@ -21,6 +21,9 @@ CFLAGS += -D_DEBUG
 # For CUDA Debugging
 CFLAGS += -g -G
 
+# For instruction set architecture.
+CFLAGS += -arch sm_30
+
 BOOST_ROOT = /usr/include/boost
 
 # Normal libs to always include

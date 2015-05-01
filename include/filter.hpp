@@ -10,8 +10,8 @@
 #include <thrust/sort.h>
 
 /* Grid and Block definitions. Alter these as you please to tweak results. */
-#define GRID_X 512
-#define GRID_Y 512
+#define GRID_X 16
+#define GRID_Y 16
 #define BLOCK_X 32
 #define BLOCK_Y 32
 
