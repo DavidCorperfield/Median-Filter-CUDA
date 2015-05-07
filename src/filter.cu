@@ -59,8 +59,8 @@ void kernel_median_filter(const uint filter_size, const uchar * device_input_dat
     //device_output_data[thread_index] = 255;
 
     // Allocate memory for the filter array
-    //extern __shared__ uchar filter_array[];
-    uchar * filter_array     = new uchar[filter_length];
+    extern __shared__ uchar filter_array[];
+    //uchar * filter_array     = new uchar[filter_length];
 
     // Init the filter array with 0 or 255 values
     // Will write over the indices that are VIEWABLE from the context pixel
@@ -119,6 +119,7 @@ double Filter::median_filter_gpu(const uint filter_size, const uchar * host_data
 
     const int size = height * width * sizeof(uchar);
     const int filter_array_size = filter_size * filter_size * sizeof(uchar);
+    printf("filter_array_size: %d\n", filter_array_size);
 
     /* Allocate device memory for the result. */
     /* Note that output to hold the HOST memory has already been allocated for. */
@@ -138,7 +139,13 @@ double Filter::median_filter_gpu(const uint filter_size, const uchar * host_data
     /* Launch the kernel! */
     dim3 grid(GRID_X, GRID_Y, 1);
     dim3 block(BLOCK_X, BLOCK_Y, 1);
-    kernel_median_filter<<<grid, block>>>(filter_size, (uchar *) device_input_data, (uchar *) device_output_data, height, width);
+
+    // TO JOE: If you allocate shared memory this way it freezes at launch with the error I sent you on slack.
+    kernel_median_filter<<<grid, block, filter_size * filter_size * sizeof(uchar)>>>(filter_size, (uchar *) device_input_data, (uchar *) device_output_data, height, width);
+
+    // TO JOE: If you allocate shared memory this way we get a invalid access error cause the pointer is fucked up.
+    //         In fact the 'extern __shared__ uchar filter_array[]' has an address of 0x0. Which is most definitely odd.
+    //kernel_median_filter<<<grid, block, filter_array_size>>>(filter_size, (uchar *) device_input_data, (uchar *) device_output_data, height, width);
 
     /* In case the kernel had problems, I'd like to know. */
     checkCudaErrors(cudaGetLastError());
