@@ -7,7 +7,6 @@
 #include "cuda_helpers/helper_functions.h"
 #include "cuda_helpers/helper_cuda.h"
 #include <iostream>
-#include <thrust/sort.h>
 
 /* Grid and Block definitions. Alter these as you please to tweak results. */
 #define GRID_X 16
@@ -48,6 +47,10 @@ public:
     inline void stop_timer() {
         sdkStopTimer(&timer);
         sdkDeleteTimer(&timer);
+    }
+
+    inline std::string get_cuda_error() {
+        return cudaGetErrorString(cudaGetLastError());
     }
 
     StopWatchInterface * timer;

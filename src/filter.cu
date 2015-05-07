@@ -56,12 +56,10 @@ void kernel_median_filter(const uint filter_size, const uchar * device_input_dat
     const int x              = thread_index / width;
     const int y              = thread_index % width;
 
-    //device_output_data[thread_index] = 255;
-
     // Allocate memory for the filter array
-    extern __shared__ uchar filter_array_base[];
-    uchar * filter_array = &filter_array_base[filter_size * filter_size * threadIdx.x];
-    //uchar * filter_array     = new uchar[filter_length];
+    // extern __shared__ uchar filter_array_base[];
+    // uchar * filter_array = &filter_array_base[filter_size * filter_size * threadIdx.x];
+    uchar * filter_array     = new uchar[filter_length];
 
     // Init the filter array with 0 or 255 values
     // Will write over the indices that are VIEWABLE from the context pixel
@@ -83,7 +81,7 @@ void kernel_median_filter(const uint filter_size, const uchar * device_input_dat
 
             // Check if one of the neighboring pixels of our context pixel is outside the grid
             if (x_focus < 0 || x_focus >= (int)(width) || y_focus < 0 || y_focus >= (int)(height)) {
-    		continue;
+                continue;
     	    }
 
     	    // Otherwise we're not an edge or corner, so we have all of our neighbors
@@ -102,7 +100,7 @@ void kernel_median_filter(const uint filter_size, const uchar * device_input_dat
             if (filter_array[j] < filter_array[min_index])
                 min_index = j;
         }
-	
+
         swap = filter_array[min_index];
         filter_array[min_index] = filter_array[i];
         filter_array[i] = swap;
@@ -116,8 +114,6 @@ void kernel_median_filter(const uint filter_size, const uchar * device_input_dat
 }
 
 double Filter::median_filter_gpu(const uint filter_size, const uchar * host_data, uchar * output, const uint height, const uint width) {
-    checkCudaErrors(cudaSetDevice(0));
-
     const int size = height * width * sizeof(uchar);
     const int filter_array_size = filter_size * filter_size * BLOCK_X * sizeof(uchar);
     printf("filter_array_size: %d\n", filter_array_size);
@@ -126,16 +122,16 @@ double Filter::median_filter_gpu(const uint filter_size, const uchar * host_data
     /* Note that output to hold the HOST memory has already been allocated for. */
     void * device_input_data  = nullptr;
     void * device_output_data = nullptr;
-    checkCudaErrors(cudaMalloc((void **) & device_input_data, size));
-    checkCudaErrors(cudaMalloc((void **) & device_output_data, size));
+
+    if (cudaMalloc((void **) & device_input_data, size) != cudaSuccess)
+        std::cerr << get_cuda_error() << std::endl;
+
+    if (cudaMalloc((void **) & device_output_data, size) != cudaSuccess)
+        std::cerr << get_cuda_error() << std::endl;
 
     /* Copy the input data to the device. */
-    checkCudaErrors(cudaMemcpy(
-            device_input_data,      // dst
-            host_data,              // src
-            size,                   // count
-            cudaMemcpyHostToDevice
-    ));
+    if (cudaMemcpy(device_input_data, host_data, size, cudaMemcpyHostToDevice) != cudaSuccess)
+        std::cerr << get_cuda_error() << std::endl;
 
     /* Launch the kernel! */
     dim3 grid(GRID_X, GRID_Y, 1);
@@ -148,25 +144,17 @@ double Filter::median_filter_gpu(const uint filter_size, const uchar * host_data
     //         In fact the 'extern __shared__ uchar filter_array[]' has an address of 0x0. Which is most definitely odd.
     //         ...
     //         Or at least it used to. I'm going to bed. :(
-    kernel_median_filter<<<grid, block, filter_array_size>>>(filter_size, (uchar *) device_input_data, (uchar *) device_output_data, height, width);
-
-    /* In case the kernel had problems, I'd like to know. */
-    checkCudaErrors(cudaGetLastError());
+    // kernel_median_filter<<<grid, block, filter_array_size>>>(filter_size, (uchar *) device_input_data, (uchar *) device_output_data, height, width);
+    kernel_median_filter<<<grid, block>>>(filter_size, (uchar*) device_input_data, (uchar*) device_output_data, height, width);
 
     /* At this point, we just need to copy the device output data back to the host memory. */
     // cout << "p_output:             " << (void *) output << endl;
     // cout << "p_device_output_data: " << (void *) device_output_data << endl;
     // cout << "size:                 " << size << endl;
 
-    checkCudaErrors(cudaMemcpy(
-			output,                 // dst
-			device_output_data,     // src
-			size,                   // count
-			cudaMemcpyDeviceToHost
-			));
+    if (cudaMemcpy(output, device_output_data, size, cudaMemcpyDeviceToHost) != cudaSuccess)
+        std::cerr << get_cuda_error() << std::endl;
 
-    cout << "freeing: device_input_data" << endl;
-    cout << "freeing: device_output_data" << endl;
     cudaFree(device_input_data);
     cudaFree(device_output_data);
 
@@ -181,16 +169,6 @@ void Filter::median_filter_cpu(const uint filter_size, const uchar * input, ucha
     // (-1,  1) (0,  1) (1,  1)
     const uint offset = (filter_size - 1) / 2;
     const uint filter_length = filter_size * filter_size;
-
-    // For testing purposes, print out RGB values of original Lena image.
-    #ifdef LENA
-        for (uint y = 0; y < height; ++y) {
-            for (uint x = 0; x < width; ++x) {
-                cout << (int)(input[x + width * y]) << " ";
-            }
-            cout << endl;
-        }
-    #endif
 
     /**
      * Iterate and perform median filter analysis on every pixel.
@@ -216,9 +194,7 @@ void Filter::median_filter_cpu(const uint filter_size, const uchar * input, ucha
     	    // Populate the filter_array.
             uint filter_array_index = 0;
 
-#pragma unroll
             for (int y_offset = -1 * (int)(offset); y_offset <= (int)(offset); ++y_offset) {
-#pragma unroll
                 for (int x_offset = -1 * (int)(offset); x_offset <= (int)(offset); ++x_offset) {
         		    // Handle special cases for when the offset would place us beyond the bounds of the input.
                     const int x_focus = x + x_offset;
@@ -235,14 +211,6 @@ void Filter::median_filter_cpu(const uint filter_size, const uchar * input, ucha
 
     	    // Sort the filter_array.
             sort(filter_array, filter_array + filter_length);
-
-            // Print the filter array to test.
-            // #ifdef _DEBUG
-            //     for (uint i = 0; i < filter_length - 1; ++i) {
-            //         cout << (int)(filter_array[i]) << " ";
-            //     }
-            //     cout << (int)(filter_array[filter_length - 1]) << endl;
-            // #endif
 
             // Grab the median. Note that the since we always had odd window sizes,
             // then filter_size * filter_size is always odd as well - so no need to

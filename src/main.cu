@@ -42,6 +42,9 @@ int main(int argc, char ** argv) {
     /* Do some Median Filter magic. */
     Filter filter;
 
+    /* Since we only have one Nvidia card, let's set it to that one. */
+    cudaSetDevice(0);
+
     filter.start_timer();
 
     const double copy_compute_copy_time = filter.median_filter_gpu(filter_size, reader.pgm_source, reader.pgm_destination, height, width);
