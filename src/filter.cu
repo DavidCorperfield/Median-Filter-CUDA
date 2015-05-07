@@ -59,7 +59,8 @@ void kernel_median_filter(const uint filter_size, const uchar * device_input_dat
     //device_output_data[thread_index] = 255;
 
     // Allocate memory for the filter array
-    extern __shared__ uchar filter_array[];
+    extern __shared__ uchar filter_array_base[];
+    uchar * filter_array = &filter_array_base[filter_size * filter_size * threadIdx.x];
     //uchar * filter_array     = new uchar[filter_length];
 
     // Init the filter array with 0 or 255 values
@@ -118,7 +119,7 @@ double Filter::median_filter_gpu(const uint filter_size, const uchar * host_data
     checkCudaErrors(cudaSetDevice(0));
 
     const int size = height * width * sizeof(uchar);
-    const int filter_array_size = filter_size * filter_size * sizeof(uchar);
+    const int filter_array_size = filter_size * filter_size * BLOCK_X * sizeof(uchar);
     printf("filter_array_size: %d\n", filter_array_size);
 
     /* Allocate device memory for the result. */
