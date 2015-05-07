@@ -4,3 +4,6 @@
 # Ignore any executables
 /bin/*
 
+# The original PGM is already committed.
+# So, ignore all others.
+*.pgm
