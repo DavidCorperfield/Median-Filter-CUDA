@@ -6,13 +6,14 @@
 #include <cuda_runtime.h>
 #include "cuda_helpers/helper_functions.h"
 #include "cuda_helpers/helper_cuda.h"
+#include "reader.hpp"
 #include <iostream>
 
 /* Grid and Block definitions. Alter these as you please to tweak results. */
-#define GRID_X 16
-#define GRID_Y 16
-#define BLOCK_X 32
-#define BLOCK_Y 32
+#define GRID_X 64
+#define GRID_Y 64
+#define BLOCK_X EXPECTED_WIDTH / GRID_X // 32
+#define BLOCK_Y EXPECTED_HEIGHT / GRID_Y  // 32
 
 #define MIN_RGB_VALUE 0
 #define MAX_RGB_VALUE 255

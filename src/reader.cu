@@ -32,10 +32,6 @@ tuple<uint, char *, char *> Reader::check_command_line(int argc, char ** argv) {
         throw runtime_error("No image to do a median filter on!");
     };
 
-    if (boost::filesystem::exists(argv[3])) {
-        throw runtime_error("Output file already exists!");
-    }
-
     return make_tuple(filter_size, argv[2], argv[3]);
 }
 

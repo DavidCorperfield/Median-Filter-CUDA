@@ -116,7 +116,7 @@ void kernel_median_filter(const uint filter_size, const uchar * device_input_dat
 double Filter::median_filter_gpu(const uint filter_size, const uchar * host_data, uchar * output, const uint height, const uint width) {
     const int size = height * width * sizeof(uchar);
     const int filter_array_size = filter_size * filter_size * BLOCK_X * sizeof(uchar);
-    printf("filter_array_size: %d\n", filter_array_size);
+    // printf("filter_array_size: %d\n", filter_array_size);
 
     /* Allocate device memory for the result. */
     /* Note that output to hold the HOST memory has already been allocated for. */
