@@ -12,8 +12,8 @@
 /* Grid and Block definitions. Alter these as you please to tweak results. */
 #define GRID_X 64
 #define GRID_Y 64
-#define BLOCK_X EXPECTED_WIDTH / GRID_X // 32
-#define BLOCK_Y EXPECTED_HEIGHT / GRID_Y  // 32
+#define BLOCK_X EXPECTED_WIDTH / GRID_X
+#define BLOCK_Y EXPECTED_HEIGHT / GRID_Y
 
 #define MIN_RGB_VALUE 0
 #define MAX_RGB_VALUE 255

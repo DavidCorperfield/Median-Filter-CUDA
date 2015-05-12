@@ -57,8 +57,8 @@ void kernel_median_filter(const uint filter_size, const uchar * device_input_dat
     const int y              = thread_index % width;
 
     // Allocate memory for the filter array
-    // extern __shared__ uchar filter_array_base[];
-    // uchar * filter_array = &filter_array_base[filter_size * filter_size * threadIdx.x];
+    // extern __shared__ uchar filter_array_sh[];
+    // uchar * filter_array = &filter_array_sh[filter_length * threadIdx.x];
     uchar * filter_array     = new uchar[filter_length];
 
     // Init the filter array with 0 or 255 values
@@ -110,13 +110,12 @@ void kernel_median_filter(const uint filter_size, const uchar * device_input_dat
     // then filter_size * filter_size is always odd as well - so no need to
     // handle special cases for even or odd number for the median.
     *output_context = filter_array[(filter_length - 1) / 2];
+
     delete[] filter_array;
 }
 
 double Filter::median_filter_gpu(const uint filter_size, const uchar * host_data, uchar * output, const uint height, const uint width) {
     const int size = height * width * sizeof(uchar);
-    const int filter_array_size = filter_size * filter_size * BLOCK_X * sizeof(uchar);
-    // printf("filter_array_size: %d\n", filter_array_size);
 
     /* Allocate device memory for the result. */
     /* Note that output to hold the HOST memory has already been allocated for. */
@@ -137,20 +136,10 @@ double Filter::median_filter_gpu(const uint filter_size, const uchar * host_data
     dim3 grid(GRID_X, GRID_Y, 1);
     dim3 block(BLOCK_X, BLOCK_Y, 1);
 
-    // TO JOE: If you allocate shared memory this way it freezes at launch with the error I sent you on slack.
-    //kernel_median_filter<<<grid, block, filter_size * filter_size * sizeof(uchar)>>>(filter_size, (uchar *) device_input_data, (uchar *) device_output_data, height, width);
-
-    // TO JOE: If you allocate shared memory this way we get a invalid access error cause the pointer is fucked up.
-    //         In fact the 'extern __shared__ uchar filter_array[]' has an address of 0x0. Which is most definitely odd.
-    //         ...
-    //         Or at least it used to. I'm going to bed. :(
-    // kernel_median_filter<<<grid, block, filter_array_size>>>(filter_size, (uchar *) device_input_data, (uchar *) device_output_data, height, width);
-    kernel_median_filter<<<grid, block>>>(filter_size, (uchar*) device_input_data, (uchar*) device_output_data, height, width);
-
-    /* At this point, we just need to copy the device output data back to the host memory. */
-    // cout << "p_output:             " << (void *) output << endl;
-    // cout << "p_device_output_data: " << (void *) device_output_data << endl;
-    // cout << "size:                 " << size << endl;
+    // TODO: Use shared memory.
+    /* NOTE: not using Shared Memory currently since could not get it to work properly. */
+    const uint shared_mem_size = filter_size * filter_size * BLOCK_X * sizeof(uchar);
+    kernel_median_filter<<<grid, block, shared_mem_size>>>(filter_size, (uchar*) device_input_data, (uchar*) device_output_data, height, width);
 
     if (cudaMemcpy(output, device_output_data, size, cudaMemcpyDeviceToHost) != cudaSuccess)
         std::cerr << get_cuda_error() << std::endl;

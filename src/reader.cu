@@ -18,7 +18,7 @@ Reader::~Reader() {
 tuple<uint, char *, char *> Reader::check_command_line(int argc, char ** argv) {
     if (argc < 4) {
         cout << "Invalid Usage." << endl;
-        cout << "Proper usage is: " << "./mf <filter size> <input_filename> <output_filename> \n" << endl;
+        cout << "Proper usage is: " << ".bin/mf <filter size> <input_filename> <output_filename> \n" << endl;
         throw runtime_error("Invalid use!");
     }
 
